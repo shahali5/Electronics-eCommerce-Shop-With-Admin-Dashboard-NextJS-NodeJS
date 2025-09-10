@@ -10,71 +10,47 @@
 
 import React from "react";
 import ProductItem from "./ProductItem";
+import Heading from "./Heading";
 
-const Products = async ({ slug }: any) => {
-  // getting all data from URL slug and preparing everything for sending GET request
-  const inStockNum = slug?.searchParams?.inStock === "true" ? 1 : 0;
-  const outOfStockNum = slug?.searchParams?.outOfStock === "true" ? 1 : 0;
-  const page = slug?.searchParams?.page ? Number(slug?.searchParams?.page) : 1;
+// Define Product type if not imported
+type Product = {
+  id: string;
+  // add other fields as needed
+};
 
-  let stockMode: string = "lte";
-  
-  // preparing inStock and out of stock filter for GET request
-  // If in stock checkbox is checked, stockMode is "equals"
-  if (inStockNum === 1) {
-    stockMode = "equals";
-  }
- // If out of stock checkbox is checked, stockMode is "lt"
-  if (outOfStockNum === 1) {
-    stockMode = "lt";
-  }
-   // If in stock and out of stock checkboxes are checked, stockMode is "lte"
-  if (inStockNum === 1 && outOfStockNum === 1) {
-    stockMode = "lte";
-  }
-   // If in stock and out of stock checkboxes aren't checked, stockMode is "gt"
-  if (inStockNum === 0 && outOfStockNum === 0) {
-    stockMode = "gt";
+const ProductsSection = async () => {
+  let products: Product[] = [];
+  let error: string | null = null;
+
+  try {
+    // Use relative path if API is part of the same Next.js app
+    const res = await fetch("/api/products", { cache: "no-store" });
+    if (!res.ok) {
+      const text = await res.text();
+      error = `API error: ${res.status}\n${text}`;
+    } else {
+      products = await res.json();
+    }
+  } catch (e: any) {
+    error = e.message;
   }
 
-  // sending API request with filtering, sorting and pagination for getting all products
-  const data = await fetch(
-    `http://localhost:3001/api/products?filters[price][$lte]=${
-      slug?.searchParams?.price || 3000
-    }&filters[rating][$gte]=${
-      Number(slug?.searchParams?.rating) || 0
-    }&filters[inStock][$${stockMode}]=1&${
-      slug?.params?.slug?.length > 0
-        ? `filters[category][$equals]=${slug?.params?.slug}&`
-        : ""
-    }sort=${slug?.searchParams?.sort}&page=${page}`
-  );
+  if (error) {
+    return <div>Error loading products:<pre>{error}</pre></div>;
+  }
 
-  const products = await data.json();
-
-  /*
-    const req = await fetch(
-    `http://localhost:1337/api/products?populate=*&filters[price][$lte]=${
-      searchParams?.price || 1000
-    }${searchParams.women === "true" ? "&filters[category][$eq]=women" : ""}${searchParams.womenNewEdition === "true" ? "&filters[category][$eq]=women%20new%20edition" : ""}&filters[rating][$gte]=${
-      searchParams?.rating || 1
-    }`
-  );
-  const products = await req.json();
-  */
   return (
-    <div className="grid grid-cols-3 justify-items-center gap-x-2 gap-y-5 max-[1300px]:grid-cols-3 max-lg:grid-cols-2 max-[500px]:grid-cols-1">
-      {products.length > 0 ? (
-        products.map((product: Product) => (
-          <ProductItem key={product.id} product={product} color="black" />
-        ))
-      ) : (
-        <h3 className="text-3xl mt-5 text-center w-full col-span-full max-[1000px]:text-2xl max-[500px]:text-lg">
-          No products found for specified query
-        </h3>
-      )}
+    <div className="bg-blue-500 border-t-4 border-white">
+      <div className="max-w-screen-2xl mx-auto pt-20">
+        <Heading title="FEATURED PRODUCTS" />
+        <div className="grid grid-cols-4 justify-items-center max-w-screen-2xl mx-auto py-10 gap-x-2 px-10 gap-y-8 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1">
+          {products.map((product) => (
+            <ProductItem key={product.id} product={product} color="white" />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Products;
+export default ProductsSection;

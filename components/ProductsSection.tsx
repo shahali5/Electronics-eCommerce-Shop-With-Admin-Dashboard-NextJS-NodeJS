@@ -13,9 +13,26 @@ import ProductItem from "./ProductItem";
 import Heading from "./Heading";
 
 const ProductsSection = async () => {
-  // sending API request for getting all products
-  const data = await fetch("http://localhost:3001/api/products");
-  const products = await data.json();
+  let products = [];
+  let error = null;
+
+  try {
+    const res = await fetch("http://localhost:3001/api/products", { cache: "no-store" });
+    if (!res.ok) {
+      error = `API error: ${res.status}`;
+      const text = await res.text();
+      error += `\n${text}`;
+    } else {
+      products = await res.json();
+    }
+  } catch (e: any) {
+    error = e.message;
+  }
+
+  if (error) {
+    return <div>Error loading products:<pre>{error}</pre></div>;
+  }
+
   return (
     <div className="bg-blue-500 border-t-4 border-white">
       <div className="max-w-screen-2xl mx-auto pt-20">

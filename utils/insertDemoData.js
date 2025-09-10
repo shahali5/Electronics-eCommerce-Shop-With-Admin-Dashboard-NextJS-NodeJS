@@ -1,3 +1,5 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
@@ -227,25 +229,20 @@ const demoCategories = [
   },
 ];
 
+
 async function insertDemoData() {
   for (const product of demoProducts) {
-    await prisma.product.create({
-      data: product,
-    });
+    await prisma.product.create({ data: product });
   }
   console.log("Demo products inserted successfully!");
 
   for (const image of demoProductImages) {
-    await prisma.image.create({
-      data: image,
-    });
+    await prisma.image.create({ data: image });
   }
   console.log("Demo images inserted successfully!");
 
   for (const category of demoCategories) {
-    await prisma.category.create({
-      data: category,
-    });
+    await prisma.category.create({ data: category });
   }
   console.log("Demo categories inserted successfully!");
 }
